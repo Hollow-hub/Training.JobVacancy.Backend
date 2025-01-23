@@ -25,6 +25,8 @@ app.UseHttpsRedirection();
 app.MapOpenApi();
 app.MapScalarApiReference();
 
+app.MapFeedEndpoints();
+app.MapFeedEntryEndpoints();
 app.MapWeatherEndpoints();
 
 app.Run();
