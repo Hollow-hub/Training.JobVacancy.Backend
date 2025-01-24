@@ -9,12 +9,12 @@ public static class FeedEntryEndpoints
 {
   public static IEndpointRouteBuilder MapFeedEntryEndpoints(this IEndpointRouteBuilder endpoints)
   {
-    var api = endpoints.MapGet("api/v1/feedentry/{entryId:int}", GetSpecifiedFeedEntry).WithOpenApi();
+    endpoints.MapGet("api/v1/feedentry/{entryId:int}", GetSpecifiedFeedEntry).WithOpenApi();
 
     return endpoints;
   }
 
-  public static async Task<Results<NotFound, Ok<FeedEntry>>> GetSpecifiedFeedEntry(int id)
+  public static async Task<Results<NotFound, Ok<FeedEntry>>> GetSpecifiedFeedEntry(int entryId)
   {
     var feedEntry = DataCreatorFeed.GetFeedEntry();
 
