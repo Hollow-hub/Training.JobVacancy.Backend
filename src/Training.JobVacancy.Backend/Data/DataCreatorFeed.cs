@@ -1,126 +1,113 @@
+namespace Adaptit.Training.JobVacancy.Backend.Data;
+
 using System.Globalization;
 
 using Adaptit.Training.JobVacancy.Backend.Dto;
 
 using Bogus;
 
-namespace Adaptit.Training.JobVacancy.Backend.Data
+public static class DataCreatorFeed
 {
-  public static class DataCreatorFeed
+  public static Faker<Feed> FeedFaker { get; } = new Faker<Feed>()
+    .RuleFor(q => q.Version, f => f.Random.Int(1,10).ToString())
+    .RuleFor(q => q.Title, q => q.WaffleTitle())
+    .RuleFor(q => q.HomePageUrl, f => f.Internet.Url().ToString())
+    .RuleFor(q => q.FeedUrl, f => f.Internet.Url().ToString())
+    .RuleFor(q => q.Description, q => q.WaffleText())
+    .RuleFor(q => q.NextUrl, f => f.Internet.Url().ToString())
+    .RuleFor(q => q.Id, q => q.Random.Int(1, 100).ToString())
+    .RuleFor(q => q.NextId, q => q.Random.Int(1, 100).ToString())
+    .RuleFor(q => q.Items, q => [.. ItemsFaker.Generate(q.Random.Int(1, 3))]);
+
+  public static Faker<Items> ItemsFaker { get; } = new Faker<Items>()
+    .RuleFor(q => q.Id, f => f.Random.Int(1, 100).ToString())
+    .RuleFor(q => q.Url, f => f.Internet.Url().ToString())
+    .RuleFor(q => q.Title, q => q.WaffleText())
+    .RuleFor(q => q.ContentText, q => q.WaffleText())
+    .RuleFor(q => q.DateModified, f => f.Date.Past().ToString(CultureInfo.InvariantCulture))
+    .RuleFor(q => q.FeedEntry, f => FeedEntryFaker.Generate());
+
+  public static Faker<feedEntry> FeedEntryFaker { get; } = new Faker<feedEntry>()
+    .RuleFor(q => q.Uuid, q => q.Random.Guid().ToString())
+    .RuleFor(q => q.Status, f => "Active")
+    .RuleFor(q => q.Title, f => f.Company.Bs())
+    .RuleFor(q => q.BusinessName, f => f.Company.CompanyName())
+    .RuleFor(q => q.Municipal, f => f.Random.Words())
+    .RuleFor(q => q.SistEndret, f => f.Date.Past().ToString(CultureInfo.InvariantCulture));
+
+  public static FeedEntry GetFeedEntry()
   {
-    public static Feed GetFeed()
-    {
-      var feedItems = new Faker<Items>()
-        .RuleFor(q => q.id, f => f.Random.Int(1, 100).ToString())
-        .RuleFor(q => q.url, f => "https://localhost:5001/api/v1/feed/1")
-        .RuleFor(q => q.title, q => q.Random.Words())
-        .RuleFor(q => q.content_text, q => q.Random.Words())
-        .RuleFor(q => q.date_modified, f => f.Date.Past().ToString(CultureInfo.InvariantCulture))
-        .RuleFor(q => q._feed_entry,
-          f => new _feed_entry
-          {
-            uuid = f.Random.Guid().ToString(),
-            status = "Active",
-            title = f.Random.Words(),
-            businessName = f.Random.Words(),
-            municipal = f.Random.Words(),
-            sistEndret = f.Date.Past().ToString(CultureInfo.InvariantCulture)
-          });
-
-      var feedFaker = new Faker<Feed>()
-        .RuleFor(q => q.version, f => "https://jsonfeed.org/version/1")
-        .RuleFor(q => q.title, q => q.Random.Words().ToString())
-        .RuleFor(q => q.home_page_url, f => "https://localhost:5001/api/v1/feed")
-        .RuleFor(q => q.feed_url, f => "https://localhost:5001/api/v1/feed")
-        .RuleFor(q => q.description, q => q.Random.Words().ToString())
-        .RuleFor(q => q.next_url, f => "https://localhost:5001/api/v1/feed/2")
-        .RuleFor(q => q.id, q => q.Random.Int(1, 100).ToString())
-        .RuleFor(q => q.next_id, q => q.Random.Int(1, 100).ToString())
-        .RuleFor(q => q.items, q => [.. feedItems.Generate(1)]);
-
-      var feed = feedFaker.Generate();
-      return feed;
-    }
-
-
-    public static FeedEntry GetFeedEntry()
-    {
-      var feedEntry = new Faker<FeedEntry>()
-        .RuleFor(q => q.uuid, q => q.Random.Guid().ToString())
-        .RuleFor(q => q.sistEndret, f => f.Date.Past().ToString(CultureInfo.InvariantCulture))
-        .RuleFor(q => q.status, f => "Active")
-        .RuleFor(q => q.ad_content,
-          f => new Ad_content
-          {
-            uuid = f.Random.Guid().ToString(),
-            published = f.Date.Past().ToString(CultureInfo.InvariantCulture),
-            expires = f.Date.Future().ToString(CultureInfo.InvariantCulture),
-            updated = f.Date.Future().ToString(CultureInfo.InvariantCulture),
-            workLocations =
-            [
-              new WorkLocations
-              {
-                country = f.Address.Country().ToString(),
-                address = f.Address.StreetAddress().ToString(),
-                city = f.Address.City().ToString(),
-                postalCode = f.Address.ZipCode().ToString(),
-                county = f.Address.County().ToString(),
-                municipal = f.Address.City().ToString()
-              }
-            ],
-            contactList =
-            [
-              new ContactList
-              {
-                name = f.Name.FullName().ToString(),
-                email = f.Internet.Email().ToString(),
-                phone = f.Phone.PhoneNumber().ToString(),
-                role = f.Random.Words().ToString(),
-                title = f.Random.Words().ToString()
-              }
-            ],
-            title = f.Random.Words().ToString(),
-            description = f.Random.Words().ToString(),
-            sourceurl = f.Internet.Url().ToString(),
-            source = f.Random.Words().ToString(),
-            applicationUrl = f.Internet.Url().ToString(),
-            applicationDue = f.Date.Future().ToString(CultureInfo.InvariantCulture),
-            occupationCategories =
-            [
-              new OccupationCategories
-              {
-                level1 = f.Random.Words().ToString(),
-                level2 = f.Random.Words().ToString()
-              }
-            ],
-            categoryList =
-            [
-              new CategoryList
-              {
-                categoryType = f.Random.Words().ToString(),
-                code = f.Random.Words().ToString(),
-                name = f.Random.Words().ToString(),
-                description = f.Random.Words().ToString(),
-                score = f.Random.Int(1, 100)
-              }
-            ],
-            jobtitle = f.Random.Words().ToString(),
-            link = f.Internet.Url().ToString(),
-            employer = new Employer
+    var feedEntry = new Faker<FeedEntry>()
+      .RuleFor(q => q.Uuid, q => q.Random.Guid().ToString())
+      .RuleFor(q => q.SistEndret, f => f.Date.Past().ToString(CultureInfo.InvariantCulture))
+      .RuleFor(q => q.Status, f => "Active")
+      .RuleFor(q => q.AdContent,
+        f => new AdContent
+        {
+          Uuid = f.Random.Guid().ToString(),
+          Published = f.Date.Past().ToString(CultureInfo.InvariantCulture),
+          Expires = f.Date.Future().ToString(CultureInfo.InvariantCulture),
+          Updated = f.Date.Future().ToString(CultureInfo.InvariantCulture),
+          WorkLocations =
+          [
+            new WorkLocations
             {
-              name = f.Company.CompanyName().ToString(),
-              orgnr = f.Random.Int(100000, 999999).ToString(),
-              description = f.Random.Words().ToString(),
-              homepage = f.Internet.Url().ToString()
-            },
-            engagementtype = f.Random.Words().ToString(),
-            extent = f.Random.Words().ToString(),
-            starttime = f.Date.Future().ToString(CultureInfo.InvariantCulture),
-            positioncount = f.Random.Int(1, 100).ToString(),
-            sector = f.Random.Words().ToString()
-          });
-      var feed = feedEntry.Generate();
-      return feed;
-    }
+              Country = f.Address.Country().ToString(),
+              Address = f.Address.StreetAddress().ToString(),
+              City = f.Address.City().ToString(),
+              PostalCode = f.Address.ZipCode().ToString(),
+              County = f.Address.County().ToString(),
+              Municipal = f.Address.City().ToString()
+            }
+          ],
+          ContactList =
+          [
+            new ContactList
+            {
+              Name = f.Name.FullName().ToString(),
+              Email = f.Internet.Email().ToString(),
+              Phone = f.Phone.PhoneNumber().ToString(),
+              Role = f.Random.Words().ToString(),
+              Title = f.Random.Words().ToString()
+            }
+          ],
+          Title = f.Random.Words().ToString(),
+          Description = f.Random.Words().ToString(),
+          Sourceurl = f.Internet.Url().ToString(),
+          Source = f.Random.Words().ToString(),
+          ApplicationUrl = f.Internet.Url().ToString(),
+          ApplicationDue = f.Date.Future().ToString(CultureInfo.InvariantCulture),
+          OccupationCategories =
+          [
+            new OccupationCategories { Level1 = f.Random.Words().ToString(), Level2 = f.Random.Words().ToString() }
+          ],
+          CategoryList =
+          [
+            new CategoryList
+            {
+              CategoryType = f.Random.Words().ToString(),
+              Code = f.Random.Words().ToString(),
+              Name = f.Random.Words().ToString(),
+              Description = f.Random.Words().ToString(),
+              Score = f.Random.Int(1, 100)
+            }
+          ],
+          Jobtitle = f.Random.Words().ToString(),
+          Link = f.Internet.Url().ToString(),
+          Employer = new Employer
+          {
+            Name = f.Company.CompanyName().ToString(),
+            Orgnr = f.Random.Int(100000, 999999).ToString(),
+            Description = f.Random.Words().ToString(),
+            Homepage = f.Internet.Url().ToString()
+          },
+          Engagementtype = f.Random.Words().ToString(),
+          Extent = f.Random.Words().ToString(),
+          Starttime = f.Date.Future().ToString(CultureInfo.InvariantCulture),
+          Positioncount = f.Random.Int(1, 100).ToString(),
+          Sector = f.Random.Words().ToString()
+        });
+    var feed = feedEntry.Generate();
+    return feed;
   }
 }

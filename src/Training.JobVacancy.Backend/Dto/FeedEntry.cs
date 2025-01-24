@@ -1,77 +1,81 @@
 namespace Adaptit.Training.JobVacancy.Backend.Dto;
 
+using System.Text.Json.Serialization;
+
 public class FeedEntry
 {
-  public string uuid { get; set; }
-  public string sistEndret { get; set; }
-  public string status { get; set; }
-  public Ad_content ad_content { get; set; }
+  public required string Uuid { get; set; }
+  public required string SistEndret { get; set; }
+  public required string Status { get; set; }
+
+  [JsonPropertyName("ad_content")]
+  public required AdContent AdContent { get; set; }
 }
 
-public class Ad_content
+public class AdContent
 {
-  public string uuid { get; set; }
-  public string published { get; set; }
-  public string expires { get; set; }
-  public string updated { get; set; }
-  public WorkLocations[] workLocations { get; set; }
-  public ContactList[] contactList { get; set; }
-  public string title { get; set; }
-  public string description { get; set; }
-  public string sourceurl { get; set; }
-  public string source { get; set; }
-  public string applicationUrl { get; set; }
-  public string applicationDue { get; set; }
-  public OccupationCategories[] occupationCategories { get; set; }
-  public CategoryList[] categoryList { get; set; }
-  public string jobtitle { get; set; }
-  public string link { get; set; }
-  public Employer employer { get; set; }
-  public string engagementtype { get; set; }
-  public string extent { get; set; }
-  public string starttime { get; set; }
-  public string positioncount { get; set; }
-  public string sector { get; set; }
+  public required string Uuid { get; set; }
+  public required string Published { get; set; }
+  public required string Expires { get; set; }
+  public required string Updated { get; set; }
+  public required WorkLocations[] WorkLocations { get; set; }
+  public required ContactList[] ContactList { get; set; }
+  public required string Title { get; set; }
+  public string? Description { get; set; }
+  public string? Sourceurl { get; set; }
+  public string? Source { get; set; }
+  public string? ApplicationUrl { get; set; }
+  public string? ApplicationDue { get; set; }
+  public required OccupationCategories[] OccupationCategories { get; set; }
+  public required CategoryList[] CategoryList { get; set; }
+  public string? Jobtitle { get; set; }
+  public required string Link { get; set; }
+  public required Employer Employer { get; set; }
+  public string? Engagementtype { get; set; }
+  public string? Extent { get; set; }
+  public string? Starttime { get; set; }
+  public string? Positioncount { get; set; }
+  public string? Sector { get; set; }
 }
 
 public class WorkLocations
 {
-  public string country { get; set; }
-  public string address { get; set; }
-  public string city { get; set; }
-  public string postalCode { get; set; }
-  public string county { get; set; }
-  public string municipal { get; set; }
+  public string? Country { get; set; }
+  public string? Address { get; set; }
+  public string? City { get; set; }
+  public string? PostalCode { get; set; }
+  public string? County { get; set; }
+  public string? Municipal { get; set; }
 }
 
 public class ContactList
 {
-  public string name { get; set; }
-  public string email { get; set; }
-  public string phone { get; set; }
-  public string role { get; set; }
-  public string title { get; set; }
+  public string? Name { get; set; }
+  public string? Email { get; set; }
+  public string? Phone { get; set; }
+  public string? Role { get; set; }
+  public string? Title { get; set; }
 }
 
 public class OccupationCategories
 {
-  public string level1 { get; set; }
-  public string level2 { get; set; }
+  public required string Level1 { get; set; }
+  public required string Level2 { get; set; }
 }
 
 public class CategoryList
 {
-  public string categoryType { get; set; }
-  public string code { get; set; }
-  public string name { get; set; }
-  public string description { get; set; }
-  public int score { get; set; }
+  public required string CategoryType { get; set; }
+  public required string Code { get; set; }
+  public required string Name { get; set; }
+  public string? Description { get; set; }
+  public required int Score { get; set; }
 }
 
 public class Employer
 {
-  public string name { get; set; }
-  public string orgnr { get; set; }
-  public string description { get; set; }
-  public string homepage { get; set; }
+  public required string Name { get; set; }
+  public string? Orgnr { get; set; }
+  public string? Description { get; set; }
+  public string? Homepage { get; set; }
 }
