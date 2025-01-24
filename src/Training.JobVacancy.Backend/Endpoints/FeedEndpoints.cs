@@ -4,6 +4,7 @@ using Adaptit.Training.JobVacancy.Backend.Data;
 using Adaptit.Training.JobVacancy.Backend.Dto;
 
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 
 public static class FeedEndpoints
 {
@@ -18,9 +19,9 @@ public static class FeedEndpoints
     return endpoints;
   }
 
-  public static async Task<Results<NotFound, Ok<Feed>>> GetFirstPage()
+  public static async Task<Results<NotFound, Ok<Feed>>> GetFirstPage([FromQuery(Name = "last")] string last)
   {
-    var feed = DataCreatorFeed.GetFeed();
+    var feed = DataCreatorFeed.FeedFaker.Generate();
 
     if (feed == null)
     {
@@ -31,9 +32,9 @@ public static class FeedEndpoints
   }
 
 
-  public static async Task<Results<NotFound, Ok<Feed>>> GetSpecifiedPage(int id)
+  public static async Task<Results<NotFound, Ok<Feed>>> GetSpecifiedPage(int feedPageId)
   {
-    var feed = DataCreatorFeed.GetFeed();
+    var feed = DataCreatorFeed.FeedFaker.Generate();
 
     if (feed == null)
     {
