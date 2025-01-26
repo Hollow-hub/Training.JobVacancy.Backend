@@ -1,0 +1,11 @@
+﻿name: "JobVacancy"
+
+services:
+  db:
+    image: postgres:17
+    container_name: jobvacancy_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: example123
+    ports:
+      - 5432:5432

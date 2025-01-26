@@ -12,8 +12,12 @@
     <File Path="Directory.Build.targets" />
     <File Path=".dockerignore" />
   </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="docker-compose.yaml" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src\Training.JobVacancy.Backend\Training.JobVacancy.Backend.csproj" Type="Classic C#" />
+    <Project Path="src\Training.JobVacancy.Persistence\Training.JobVacancy.Persistence.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/tests/" />
 </Solution>
