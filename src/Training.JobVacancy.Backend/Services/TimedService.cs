@@ -2,61 +2,57 @@ namespace Adaptit.Training.JobVacancy.Backend.Services;
 
 using Adaptit.Training.JobVacancy.Backend.Dto;
 
-public class TimedService : BackgroundService
+public class TimedService(IPamStillingFeed pamStillingFeed) : BackgroundService
 {
-  private readonly IPamStillingFeed pamStillingFeed;
+  private readonly IPamStillingFeed pamStillingFeed = pamStillingFeed;
   private readonly Dictionary<string, Feed> feeds = new();
   private readonly Dictionary<string, FeedEntry> feedEntries = new();
   private CancellationTokenSource? cts;
 
-  public TimedService(IPamStillingFeed pamStillingFeed) => this.pamStillingFeed = pamStillingFeed;
-
   /// <inheritdoc />
   protected override async Task ExecuteAsync(CancellationToken stoppingToken)
   {
-    cts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
-
+    await Task.Delay(TimeSpan.Zero, stoppingToken);
     while (!stoppingToken.IsCancellationRequested)
     {
       try
       {
-        var firstPageResponse = await pamStillingFeed.GetFirstPage(null);
-        if (firstPageResponse is { IsSuccessStatusCode: true, Content: not null })
-        {
-          await ProcessFeed(firstPageResponse.Content, cts.Token);
-        }
-
-        await Task.Delay(TimeSpan.FromMinutes(30), cts.Token);
+        RefreshToken(stoppingToken);
+        await Task.Delay(TimeSpan.FromMinutes(30), cts!.Token);
       }
-      catch (Exception e)
+      catch (OperationCanceledException)
       {
-        Console.WriteLine(e);
+      }
+
+      try
+      {
+        await DoWork(stoppingToken);
+      }
+      catch (OperationCanceledException)
+      {
+      }
+      catch (Exception ex)
+      {
       }
     }
   }
 
-  private async Task ProcessFeed(Feed feed, CancellationToken stoppingToken)
+  public void Trigger() => cts?.Cancel();
+
+  private async Task DoWork(CancellationToken token)
   {
-    while (feed != null && !stoppingToken.IsCancellationRequested)
+  }
+
+  private void RefreshToken(CancellationToken stoppingToken)
+  {
+    if (cts is { Token.IsCancellationRequested: false })
     {
-      foreach (var item in feed.Items)
-      {
-        var feedEntry = item.FeedEntry;
-
-        //feedEntries.AddOrUpdate(feedEntry.Uuid, feedEntry, (key, existing) => feedEntry);
-      }
-
-      if (string.IsNullOrEmpty(feed.NextId))
-      {
-        continue;
-      }
-
-      var nextPageResponse = await pamStillingFeed.GetSpecifiedPage(int.Parse(feed.NextId));
-      if (nextPageResponse is { IsSuccessStatusCode: true, Content: not null })
-      {
-        feed = nextPageResponse.Content;
-      }
+      return;
     }
+
+    cts?.Cancel();
+    cts?.Dispose();
+    cts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
   }
 
   public override void Dispose()
@@ -64,11 +60,5 @@ public class TimedService : BackgroundService
     cts?.Cancel();
     cts?.Dispose();
     base.Dispose();
-  }
-
-  public FeedEntry? GetFeedEntryById(string uuid)
-  {
-    feedEntries.TryGetValue(uuid, out var feedEntry);
-    return feedEntry;
   }
 }
