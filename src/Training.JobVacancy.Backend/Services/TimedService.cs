@@ -1,12 +1,12 @@
 namespace Adaptit.Training.JobVacancy.Backend.Services;
 
-using Adaptit.Training.JobVacancy.Backend.Dto;
+using Adaptit.Training.JobVacancy.Persistence;
+using Adaptit.Training.JobVacancy.Persistence.Model;
 
-public class TimedService(IPamStillingFeed pamStillingFeed) : BackgroundService
+public class TimedService(IPamStillingFeed pamStillingFeed, JobVacancyDbContext dbContext, ILogger<TimedService> logger) : BackgroundService
 {
   private readonly IPamStillingFeed pamStillingFeed = pamStillingFeed;
-  private readonly Dictionary<string, Feed> feeds = new();
-  private readonly Dictionary<string, FeedEntry> feedEntries = new();
+  private readonly JobVacancyDbContext dbContext = dbContext;
   private CancellationTokenSource? cts;
 
   /// <inheritdoc />
@@ -33,6 +33,7 @@ public class TimedService(IPamStillingFeed pamStillingFeed) : BackgroundService
       }
       catch (Exception ex)
       {
+        logger.LogCritical(ex, "An error occurred while processing the feed.");
       }
     }
   }
@@ -41,6 +42,58 @@ public class TimedService(IPamStillingFeed pamStillingFeed) : BackgroundService
 
   private async Task DoWork(CancellationToken token)
   {
+    try
+    {
+      var firstPage = await pamStillingFeed.GetFirstPage(null);
+      if (firstPage.IsSuccessful)
+      {
+        var feed = firstPage.Content;
+        //await SaveFeedDataToDb(feed);
+
+        foreach (var item in feed.Items)
+        {
+          //await SaveFeedEntryDataToDb(item.FeedEntry);
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      logger.LogCritical(e, "An error occurred while fetching the feed.");
+    }
+  }
+
+  private async Task SaveFeedDataToDb(Feed feed)
+  {
+    var dbFeed = new Feed
+    {
+      Version = feed.Version,
+      Title = feed.Title,
+      HomePageUrl = feed.HomePageUrl,
+      FeedUrl = feed.FeedUrl,
+      Description = feed.Description,
+      NextUrl = feed.NextUrl,
+      Id = feed.Id,
+      NextId = feed.NextId
+    };
+
+    dbContext.Feeds.Add(dbFeed);
+    await dbContext.SaveChangesAsync();
+  }
+
+  private async Task SaveFeedEntryDataToDb(feedEntry feedEntry)
+  {
+    var dbfeedEntry = new feedEntry
+    {
+      Uuid = feedEntry.Uuid,
+      Status = feedEntry.Status,
+      Title = feedEntry.Title,
+      BusinessName = feedEntry.BusinessName,
+      Municipal = feedEntry.Municipal,
+      SistEndret = feedEntry.SistEndret
+    };
+
+    dbContext.feedEntries.Add(dbfeedEntry);
+    await dbContext.SaveChangesAsync();
   }
 
   private void RefreshToken(CancellationToken stoppingToken)
