@@ -8,11 +8,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Model\" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" />
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+      <Folder Include="Extensions\" />
     </ItemGroup>
 
 </Project>
