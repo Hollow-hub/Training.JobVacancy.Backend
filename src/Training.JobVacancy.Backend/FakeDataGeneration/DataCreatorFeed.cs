@@ -8,23 +8,23 @@ using Bogus;
 
 public static class DataCreatorFeed
 {
-  public static Faker<Feed> FeedFaker { get; } = new Faker<Feed>()
+  public static Faker<FeedDto> FeedFaker { get; } = new Faker<FeedDto>()
     .RuleFor(q => q.Version, f => f.Random.Int(1,10).ToString())
     .RuleFor(q => q.Title, q => q.WaffleTitle())
-    .RuleFor(q => q.HomePageUrl, f => f.Internet.Url().ToString())
+    .RuleFor(q => q.HomePageUrl, f => new Uri(f.Internet.Url()))
     .RuleFor(q => q.FeedUrl, f => f.Internet.Url().ToString())
     .RuleFor(q => q.Description, q => q.WaffleText())
     .RuleFor(q => q.NextUrl, f => f.Internet.Url().ToString())
-    .RuleFor(q => q.Id, q => q.Random.Int(1, 100).ToString())
+    .RuleFor(q => q.Id, q => q.Random.Guid())
     .RuleFor(q => q.NextId, q => q.Random.Int(1, 100).ToString())
     .RuleFor(q => q.Items, q => [.. ItemsFaker.Generate(q.Random.Int(1, 3))]);
 
-  public static Faker<Items> ItemsFaker { get; } = new Faker<Items>()
-    .RuleFor(q => q.Id, f => f.Random.Int(1, 100).ToString())
+  public static Faker<ItemDto> ItemsFaker { get; } = new Faker<ItemDto>()
+    .RuleFor(q => q.Id, f => f.Random.Guid())
     .RuleFor(q => q.Url, f => f.Internet.Url().ToString())
     .RuleFor(q => q.Title, q => q.WaffleText())
     .RuleFor(q => q.ContentText, q => q.WaffleText())
-    .RuleFor(q => q.DateModified, f => f.Date.Past().ToString(CultureInfo.InvariantCulture))
+    .RuleFor(q => q.DateModified, f => f.Date.Past().ToUniversalTime())
     .RuleFor(q => q.FeedEntry, f => FeedEntryFaker.Generate());
 
   public static Faker<feedEntry> FeedEntryFaker { get; } = new Faker<feedEntry>()
@@ -35,9 +35,9 @@ public static class DataCreatorFeed
     .RuleFor(q => q.Municipal, f => f.Random.Words())
     .RuleFor(q => q.SistEndret, f => f.Date.Past().ToString(CultureInfo.InvariantCulture));
 
-  public static FeedEntry GetFeedEntry()
+  public static FeedEntryDto GetFeedEntry()
   {
-    var feedEntry = new Faker<FeedEntry>()
+    var feedEntry = new Faker<FeedEntryDto>()
       .RuleFor(q => q.Uuid, q => q.Random.Guid().ToString())
       .RuleFor(q => q.SistEndret, f => f.Date.Past().ToString(CultureInfo.InvariantCulture))
       .RuleFor(q => q.Status, f => "Active")

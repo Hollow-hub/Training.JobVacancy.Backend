@@ -1,12 +1,18 @@
 namespace Adaptit.Training.JobVacancy.Backend.Services;
 
-using Adaptit.Training.JobVacancy.Persistence;
-using Adaptit.Training.JobVacancy.Persistence.Model;
+using System.Globalization;
 
-public class TimedService(IPamStillingFeed pamStillingFeed, JobVacancyDbContext dbContext, ILogger<TimedService> logger) : BackgroundService
+using Adaptit.Training.JobVacancy.Backend.Extensions;
+using Adaptit.Training.JobVacancy.Persistence;
+
+public class TimedService(
+  IPamStillingFeed pamStillingFeed,
+  IServiceScopeFactory scopeFactory,
+  ILogger<TimedService> logger) : BackgroundService
 {
+  private readonly IServiceScopeFactory scopeFactory = scopeFactory;
+  private const int MaxDepth = 15;
   private readonly IPamStillingFeed pamStillingFeed = pamStillingFeed;
-  private readonly JobVacancyDbContext dbContext = dbContext;
   private CancellationTokenSource? cts;
 
   /// <inheritdoc />
@@ -42,58 +48,20 @@ public class TimedService(IPamStillingFeed pamStillingFeed, JobVacancyDbContext 
 
   private async Task DoWork(CancellationToken token)
   {
-    try
-    {
-      var firstPage = await pamStillingFeed.GetFirstPage(null);
-      if (firstPage.IsSuccessful)
-      {
-        var feed = firstPage.Content;
-        //await SaveFeedDataToDb(feed);
+    await using var scope = scopeFactory.CreateAsyncScope();
+    var db = scope.ServiceProvider.GetRequiredService<JobVacancyDbContext>();
 
-        foreach (var item in feed.Items)
-        {
-          //await SaveFeedEntryDataToDb(item.FeedEntry);
-        }
-      }
+    var firstPage = await pamStillingFeed.GetFirstPage(
+      DateTime.Now.AddDays(-1).ToString(CultureInfo.InvariantCulture.DateTimeFormat.RFC1123Pattern));
+    if (!firstPage.IsSuccessful || firstPage.Content == null)
+    {
+      return;
     }
-    catch (Exception e)
-    {
-      logger.LogCritical(e, "An error occurred while fetching the feed.");
-    }
-  }
 
-  private async Task SaveFeedDataToDb(Feed feed)
-  {
-    var dbFeed = new Feed
-    {
-      Version = feed.Version,
-      Title = feed.Title,
-      HomePageUrl = feed.HomePageUrl,
-      FeedUrl = feed.FeedUrl,
-      Description = feed.Description,
-      NextUrl = feed.NextUrl,
-      Id = feed.Id,
-      NextId = feed.NextId
-    };
+    var feed = firstPage.Content;
 
-    dbContext.Feeds.Add(dbFeed);
-    await dbContext.SaveChangesAsync();
-  }
-
-  private async Task SaveFeedEntryDataToDb(feedEntry feedEntry)
-  {
-    var dbfeedEntry = new feedEntry
-    {
-      Uuid = feedEntry.Uuid,
-      Status = feedEntry.Status,
-      Title = feedEntry.Title,
-      BusinessName = feedEntry.BusinessName,
-      Municipal = feedEntry.Municipal,
-      SistEndret = feedEntry.SistEndret
-    };
-
-    dbContext.feedEntries.Add(dbfeedEntry);
-    await dbContext.SaveChangesAsync();
+    db.Feeds.Add(feed.ToEntity());
+    await db.SaveChangesAsync(token);
   }
 
   private void RefreshToken(CancellationToken stoppingToken)

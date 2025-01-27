@@ -2,7 +2,7 @@ namespace Adaptit.Training.JobVacancy.Backend.Dto;
 
 using System.Text.Json.Serialization;
 
-public class FeedEntry
+public class FeedEntryDto
 {
   public required string Uuid { get; set; }
   public required string SistEndret { get; set; }

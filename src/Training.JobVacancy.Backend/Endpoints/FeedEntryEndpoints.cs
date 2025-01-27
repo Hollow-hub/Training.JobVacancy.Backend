@@ -14,7 +14,7 @@ public static class FeedEntryEndpoints
     return endpoints;
   }
 
-  public static async Task<Results<NotFound, Ok<FeedEntry>>> GetSpecifiedFeedEntry(int entryId)
+  public static async Task<Results<NotFound, Ok<FeedEntryDto>>> GetSpecifiedFeedEntry(int entryId)
   {
     var feedEntry = DataCreatorFeed.GetFeedEntry();
 

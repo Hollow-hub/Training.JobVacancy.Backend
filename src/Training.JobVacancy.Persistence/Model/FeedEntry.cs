@@ -7,7 +7,6 @@ public class FeedEntry
   public string SistEndret { get; set; }
 
   public string Status { get; set; }
-
   public AdContent AdContent { get; set; }
 }
 

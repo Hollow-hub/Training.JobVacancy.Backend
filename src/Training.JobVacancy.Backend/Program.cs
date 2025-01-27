@@ -4,7 +4,9 @@ using Adaptit.Training.JobVacancy.Backend.Services;
 using Adaptit.Training.JobVacancy.Persistence;
 
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 using Refit;
 
@@ -16,8 +18,17 @@ builder.Services.AddSingleton<OpenIdConnectOptions>();
 builder.Services.AddTransient<OpenIdConnectOptions>();
 builder.Services.AddScoped<OpenIdConnectOptions>();
 
-builder.Services.AddRefitClient<IPamStillingFeed>()
-  .ConfigureHttpClient(o => o.BaseAddress = new Uri("https://pam-stilling-api.azurewebsites.net"));
+builder.Services.AddSingleton(services =>
+{
+  var apiKey = services.GetRequiredService<IOptions<NaviktSettings>>().Value.ApiKey;
+  return new RefitSettings()
+  {
+    AuthorizationHeaderValueGetter = (_,_) => Task.FromResult(apiKey)
+  };
+});
+
+builder.Services.AddRefitClient<IPamStillingFeed>(services => services.GetRequiredService<RefitSettings>())
+  .ConfigureHttpClient(o => o.BaseAddress = new Uri("https://pam-stilling-feed.nav.no"));
 
 builder.Services.AddHostedService<TimedService>();
 
@@ -25,10 +36,7 @@ builder.Services.AddOptions<NaviktSettings>()
   .Bind(builder.Configuration.GetSection("NaviktSettings"))
   .ValidateDataAnnotations();
 
-builder.Services.AddDbContext<JobVacancyDbContext>(options =>
-{
-  options.UseNpgsql(builder.Configuration.GetConnectionString("JobVacancyDb"));
-});
+builder.Services.AddDbContext<JobVacancyDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("JobVacancyDb")));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
@@ -48,5 +56,12 @@ app.MapScalarApiReference();
 app.MapFeedEndpoints();
 app.MapFeedEntryEndpoints();
 app.MapWeatherEndpoints();
+
+app.MapGet("api/vi/trigger", ([FromServices] IEnumerable<IHostedService> services) =>
+{
+  var service = services.OfType<TimedService>().FirstOrDefault();
+  service?.Trigger();
+  return Results.Ok();
+});
 
 app.Run();

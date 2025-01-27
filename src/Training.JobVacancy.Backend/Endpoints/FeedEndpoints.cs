@@ -19,7 +19,7 @@ public static class FeedEndpoints
     return endpoints;
   }
 
-  public static async Task<Results<NotFound, Ok<Feed>>> GetFirstPage([FromQuery(Name = "last")] string last)
+  public static async Task<Results<NotFound, Ok<FeedDto>>> GetFirstPage([FromQuery(Name = "last")] string last)
   {
     var feed = DataCreatorFeed.FeedFaker.Generate();
 
@@ -32,7 +32,7 @@ public static class FeedEndpoints
   }
 
 
-  public static async Task<Results<NotFound, Ok<Feed>>> GetSpecifiedPage(int feedPageId)
+  public static async Task<Results<NotFound, Ok<FeedDto>>> GetSpecifiedPage(int feedPageId)
   {
     var feed = DataCreatorFeed.FeedFaker.Generate();
 
