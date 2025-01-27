@@ -1,8 +1,10 @@
 using Adaptit.Training.JobVacancy.Backend;
 using Adaptit.Training.JobVacancy.Backend.Endpoints;
 using Adaptit.Training.JobVacancy.Backend.Services;
+using Adaptit.Training.JobVacancy.Persistence;
 
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.EntityFrameworkCore;
 
 using Refit;
 
@@ -22,6 +24,11 @@ builder.Services.AddHostedService<TimedService>();
 builder.Services.AddOptions<NaviktSettings>()
   .Bind(builder.Configuration.GetSection("NaviktSettings"))
   .ValidateDataAnnotations();
+
+builder.Services.AddDbContext<JobVacancyDbContext>(options =>
+{
+  options.UseNpgsql(builder.Configuration.GetConnectionString("JobVacancyDb"));
+});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
